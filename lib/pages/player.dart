@@ -1,9 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+const String facebookUrl = 'https://facebook.com/bloger.fm';
+const String twitterUrl = 'https://twitter.com/BlogerFm';
+const String gPlusUrl = 'https://plus.google.com/+BlogerFM';
+const String soundCloudUrl = 'https://soundcloud.com/blogerfm';
 
 class PlayerPage extends StatelessWidget {
-  Widget _buildDrawer() {
-    return Drawer();
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      child: Column(
+        children: <Widget>[
+          AppBar(
+            title: Text('Radiostations'),
+            automaticallyImplyLeading: false,
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.radio,
+              color: Theme.of(context).primaryIconTheme.color,
+            ),
+            title: Text('Radio Name'),
+            selected: false,
+            onTap: () {},
+          ),
+        ],
+      ),
+    );
   }
 
   DecorationImage _buildBackgroundImage() {
@@ -19,7 +43,7 @@ class PlayerPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Blogger.fm'),
       ),
-      drawer: _buildDrawer(),
+      drawer: _buildDrawer(context),
       body: Container(
         decoration: BoxDecoration(image: _buildBackgroundImage()),
         width: double.infinity,
@@ -54,28 +78,52 @@ class PlayerPage extends StatelessWidget {
                     FontAwesomeIcons.facebookSquare,
                     color: Color(0xFF365899),
                   ),
-                  onPressed: () {},
+                  onPressed: () async {
+                    try {
+                      await launch(facebookUrl);
+                    } catch (e) {
+                      print(e);
+                    }
+                  },
                 ),
                 IconButton(
                   icon: Icon(
                     FontAwesomeIcons.twitterSquare,
                     color: Color(0xFF1DA1F2),
                   ),
-                  onPressed: () {},
+                  onPressed: () async {
+                    try {
+                      await launch(twitterUrl);
+                    } catch (e) {
+                      print(e);
+                    }
+                  },
                 ),
                 IconButton(
                   icon: Icon(
                     FontAwesomeIcons.googlePlusSquare,
                     color: Color(0xFFDB4437),
                   ),
-                  onPressed: () {},
+                  onPressed: () async {
+                    try {
+                      await launch(gPlusUrl);
+                    } catch (e) {
+                      print(e);
+                    }
+                  },
                 ),
                 IconButton(
                   icon: Icon(
                     FontAwesomeIcons.soundcloud,
                     color: Color(0xFFFF5500),
                   ),
-                  onPressed: () {},
+                  onPressed: () async {
+                    try {
+                      await launch(soundCloudUrl);
+                    } catch (e) {
+                      print(e);
+                    }
+                  },
                 ),
               ],
             ),
