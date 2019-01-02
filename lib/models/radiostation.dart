@@ -16,3 +16,5 @@ class RadioUrl {
 
   const RadioUrl(this.bitrate, this.url);
 }
+
+enum RadioStatus { isPlaying, isPaused }

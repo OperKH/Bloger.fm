@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'providers/radiostations_provider.dart';
@@ -7,6 +8,8 @@ import './pages/player.dart';
 
 void main() async {
   PrefsSingleton.prefs = await SharedPreferences.getInstance();
+  await SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   runApp(BlogerFmApp());
 }
 

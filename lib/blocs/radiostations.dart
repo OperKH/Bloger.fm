@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:audioplayer/audioplayer.dart';
 
 import '../models/radiostation.dart';
 import '../constants/radiostations.dart';
@@ -12,22 +15,30 @@ class RadiostationsBloc {
     loadState();
     // Listeners
     radiostation.listen(_radiostationChangeHandler);
+    radiostationBitrate.listen(_radiostationBitrateChangeHandler);
+    _audioPlayerStateSubscription =
+        _audioPlayer.onPlayerStateChanged.listen(_onPlayerStateChanged);
   }
 
   // Regular variables
-  final SharedPreferences prefs = PrefsSingleton.prefs;
+  final SharedPreferences _prefs = PrefsSingleton.prefs;
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  StreamSubscription<AudioPlayerState> _audioPlayerStateSubscription;
 
   // Reactive variables
   final _radiostation = BehaviorSubject<Radiostation>();
   final _radiostationBitrate = BehaviorSubject<int>();
+  final _radioStatus = BehaviorSubject<RadioStatus>();
 
   // Streams
   Observable<Radiostation> get radiostation => _radiostation.stream;
   Observable<int> get radiostationBitrate => _radiostationBitrate.stream;
+  Observable<RadioStatus> get radioStatus => _radioStatus.stream;
 
   // Sinks
   Function(Radiostation) get _setRadiostation => _radiostation.sink.add;
   Function(int) get _setRadiostationBitrate => _radiostationBitrate.sink.add;
+  Function(RadioStatus) get _setRadioStatus => _radioStatus.sink.add;
 
   // Logic Functions
   void selectRadiostationByName(String name) {
@@ -38,20 +49,39 @@ class RadiostationsBloc {
     _setRadiostation(radiostation);
   }
 
-  void play() {
-    final url = _getRadiostationUrl();
+  void selectBitrate(int bitrate) {
+    _setRadiostationBitrate(bitrate);
   }
 
-  void pause() {}
+  Future<void> play() async {
+    final url = _getRadiostationUrl();
+    await _audioPlayer.play(url);
+  }
+
+  Future<void> stop() async {
+    await _audioPlayer.stop();
+  }
+
+  Future<void> pause() async {
+    await _audioPlayer.pause();
+  }
+
+  void togglePlay() async {
+    _radioStatus.value == RadioStatus.isPlaying ? await pause() : await play();
+  }
 
   // Private Logic Functions
   void _radiostationChangeHandler(Radiostation radiostation) {
-    prefs.setString(SELECTED_RADIOSTATION_NAME, radiostation.name);
-    _selectRadistationBitrate();
+    _prefs.setString(SELECTED_RADIOSTATION_NAME, radiostation.name);
+    _selectOptimizedRadistationBitrate();
+  }
+
+  void _radiostationBitrateChangeHandler(int bitrate) {
+    stop();
     play();
   }
 
-  void _selectRadistationBitrate() {
+  void _selectOptimizedRadistationBitrate() {
     _setRadiostationBitrate(_radiostation.value.urls[0].bitrate);
   }
 
@@ -65,8 +95,24 @@ class RadiostationsBloc {
     return url;
   }
 
+  _onPlayerStateChanged(AudioPlayerState state) {
+    print(state);
+    switch (state) {
+      case AudioPlayerState.PLAYING:
+        _setRadioStatus(RadioStatus.isPlaying);
+        break;
+      case AudioPlayerState.PAUSED:
+        _setRadioStatus(RadioStatus.isPaused);
+        break;
+      case AudioPlayerState.STOPPED:
+      case AudioPlayerState.COMPLETED:
+      default:
+        _setRadioStatus(null);
+    }
+  }
+
   void loadState() async {
-    final name = prefs.getString(SELECTED_RADIOSTATION_NAME);
+    final name = _prefs.getString(SELECTED_RADIOSTATION_NAME);
     selectRadiostationByName(name);
   }
 
@@ -74,5 +120,7 @@ class RadiostationsBloc {
     // cleanup
     _radiostation.close();
     _radiostationBitrate.close();
+    _radioStatus.close();
+    _audioPlayerStateSubscription.cancel();
   }
 }

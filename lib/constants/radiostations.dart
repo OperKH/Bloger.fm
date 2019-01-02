@@ -14,7 +14,7 @@ const List<Radiostation> radiostations = const [
     urls: const [RadioUrl(192, 'http://radio.bloger.fm:8002/classic-bfm')],
   ),
   Radiostation(
-    name: 'Street',
+    name: 'Drive',
     urls: const [RadioUrl(320, 'http://radio.bloger.fm:8002/drive-bfm')],
   ),
   Radiostation(
@@ -24,5 +24,9 @@ const List<Radiostation> radiostations = const [
   Radiostation(
     name: 'Rock',
     urls: const [RadioUrl(192, 'http://radio.bloger.fm:8002/rock-bfm')],
+  ),
+  Radiostation(
+    name: 'Street',
+    urls: const [RadioUrl(192, 'http://radio.bloger.fm:8002/street-bfm')],
   ),
 ];
