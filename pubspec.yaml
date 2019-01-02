@@ -19,7 +19,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   # cupertino_icons: ^0.1.2
   font_awesome_flutter: ^8.2.0
+  shared_preferences: ^0.4.3
   url_launcher: ^4.0.3
+  rxdart: ^0.20.0
 
 dev_dependencies:
   flutter_test:

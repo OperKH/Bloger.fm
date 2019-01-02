@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../models/radiostation.dart';
+import '../constants/radiostations.dart';
+import '../providers/radiostations_provider.dart';
 
 const String facebookUrl = 'https://facebook.com/bloger.fm';
 const String twitterUrl = 'https://twitter.com/BlogerFm';
@@ -13,20 +16,33 @@ class PlayerPage extends StatelessWidget {
       child: Column(
         children: <Widget>[
           AppBar(
-            title: Text('Radiostations'),
+            title: Text('Bloger.FM radio'),
             automaticallyImplyLeading: false,
           ),
-          ListTile(
-            leading: Icon(
-              Icons.radio,
-              color: Theme.of(context).primaryIconTheme.color,
-            ),
-            title: Text('Radio Name'),
-            selected: false,
-            onTap: () {},
-          ),
+          _buildRadiostationsList(context),
         ],
       ),
+    );
+  }
+
+  Widget _buildRadiostationsList(BuildContext context) {
+    final radiostationsBloc = RadiostationsProvider.of(context);
+    return StreamBuilder<Radiostation>(
+      stream: radiostationsBloc.radiostation,
+      builder: (BuildContext context, snapshot) {
+        final Radiostation selectedRadiostation = snapshot.data;
+        return Column(
+            children: radiostations.map((Radiostation radiostation) {
+          return ListTile(
+            leading: Icon(Icons.radio),
+            title: Text(radiostation.name),
+            selected: radiostation.name == selectedRadiostation?.name,
+            onTap: () {
+              radiostationsBloc.selectRadiostationByName(radiostation.name);
+            },
+          );
+        }).toList());
+      },
     );
   }
 
@@ -41,7 +57,7 @@ class PlayerPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Blogger.fm'),
+        title: Text('Bloger.FM'),
       ),
       drawer: _buildDrawer(context),
       body: Container(
