@@ -54,6 +54,9 @@ class RadiostationsBloc {
   }
 
   Future<void> play() async {
+    if (_radioStatus.value != RadioStatus.isPlaying) {
+      _setRadioStatus(null);
+    }
     final url = _getRadiostationUrl();
     await _audioPlayer.play(url);
   }
@@ -66,7 +69,7 @@ class RadiostationsBloc {
     await _audioPlayer.pause();
   }
 
-  void togglePlay() async {
+  Future<void> togglePlay() async {
     _radioStatus.value == RadioStatus.isPlaying ? await pause() : await play();
   }
 
@@ -76,9 +79,9 @@ class RadiostationsBloc {
     _selectOptimizedRadistationBitrate();
   }
 
-  void _radiostationBitrateChangeHandler(int bitrate) {
-    stop();
-    play();
+  Future<void> _radiostationBitrateChangeHandler(int bitrate) async {
+    await stop();
+    await play();
   }
 
   void _selectOptimizedRadistationBitrate() {
@@ -95,7 +98,7 @@ class RadiostationsBloc {
     return url;
   }
 
-  _onPlayerStateChanged(AudioPlayerState state) {
+  Future<void> _onPlayerStateChanged(AudioPlayerState state) async {
     print(state);
     switch (state) {
       case AudioPlayerState.PLAYING:
@@ -105,7 +108,12 @@ class RadiostationsBloc {
         _setRadioStatus(RadioStatus.isPaused);
         break;
       case AudioPlayerState.STOPPED:
+        _setRadioStatus(RadioStatus.isStoped);
+        break;
       case AudioPlayerState.COMPLETED:
+        _setRadioStatus(null);
+        await play();
+        break;
       default:
         _setRadioStatus(null);
     }

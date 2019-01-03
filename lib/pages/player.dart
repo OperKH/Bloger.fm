@@ -120,7 +120,11 @@ class PlayerPage extends StatelessWidget {
       builder: (BuildContext context, AsyncSnapshot<RadioStatus> snapshot) {
         final RadioStatus radioStatus = snapshot.data;
         return radioStatus == null
-            ? PlatformProgressIndicator(size: 112.0, strokeWidth: 12.0)
+            ? Padding(
+                padding: EdgeInsets.all(16.0),
+                child:
+                    PlatformProgressIndicator(size: 112.0, strokeWidth: 12.0),
+              )
             : IconButton(
                 iconSize: 128.0,
                 icon: Icon(
@@ -133,6 +137,20 @@ class PlayerPage extends StatelessWidget {
                   radiostationsBloc.togglePlay();
                 },
               );
+      },
+    );
+  }
+
+  Widget _buildStopBtn(BuildContext context) {
+    final radiostationsBloc = RadiostationsProvider.of(context);
+    return IconButton(
+      iconSize: 48.0,
+      icon: Icon(
+        FontAwesomeIcons.stopCircle,
+        color: Theme.of(context).primaryColor,
+      ),
+      onPressed: () {
+        radiostationsBloc.stop();
       },
     );
   }
@@ -216,7 +234,16 @@ class PlayerPage extends StatelessWidget {
             ),
             _buildBitratesRow(context),
             Expanded(
-              child: Center(child: _buildPlayBtn(context)),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    _buildStopBtn(context),
+                    SizedBox(height: 8.0),
+                    _buildPlayBtn(context),
+                  ],
+                ),
+              ),
             ),
             _buildSocialButtons(context),
           ],
