@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audioplayer/audioplayer.dart';
+import 'package:connectivity/connectivity.dart';
 
 import '../models/radiostation.dart';
 import '../constants/radiostations.dart';
@@ -23,6 +25,7 @@ class RadiostationsBloc {
   // Regular variables
   final SharedPreferences _prefs = PrefsSingleton.prefs;
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final Connectivity _connectivity = Connectivity();
   StreamSubscription<AudioPlayerState> _audioPlayerStateSubscription;
 
   // Reactive variables
@@ -84,8 +87,19 @@ class RadiostationsBloc {
     await play();
   }
 
-  void _selectOptimizedRadistationBitrate() {
-    _setRadiostationBitrate(_radiostation.value.urls[0].bitrate);
+  Future<void> _selectOptimizedRadistationBitrate() async {
+    final ConnectivityResult connectivityResult =
+        await _connectivity.checkConnectivity();
+    final List<RadioUrl> urls = _radiostation.value.urls;
+    final int bitrate = connectivityResult == ConnectivityResult.mobile
+        ? _getMinMaxBitrate(urls, true)
+        : _getMinMaxBitrate(urls, false);
+    _setRadiostationBitrate(bitrate);
+  }
+
+  int _getMinMaxBitrate(List<RadioUrl> urls, bool isMin) {
+    if (urls.length == 1) return urls[0].bitrate;
+    return urls.map((RadioUrl url) => url.bitrate).reduce(isMin ? min : max);
   }
 
   String _getRadiostationUrl() {
