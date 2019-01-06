@@ -1,4 +1,4 @@
-package com.example.blogerfm;
+package com.fm.bloger;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
