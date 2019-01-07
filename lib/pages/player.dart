@@ -5,14 +5,16 @@ import '../models/radiostation.dart';
 import '../models/info_link.dart';
 import '../constants/radiostations.dart';
 import '../providers/radiostations_provider.dart';
-import '../widgets/platform/platform_progress_indicator.dart';
 
 const String facebookUrl = 'https://facebook.com/bloger.fm';
 const String facebookAndroid = 'fb://page/885939701490818?referrer=app_link';
 const String facebookIOS = 'fb://page/?id=885939701490818';
 const String twitterUrl = 'https://twitter.com/BlogerFm';
+const String twitterIOS = 'twitter://user?screen_name=BlogerFm';
 const String gPlusUrl = 'https://plus.google.com/+BlogerFM';
+const String gPlusIOS = 'gplus://plus.google.com/+BlogerFM';
 const String soundCloudUrl = 'https://soundcloud.com/blogerfm';
+const String soundCloudIntent = 'soundcloud://users:182622974';
 
 const List<InfoLink> infoLinks = const [
   InfoLink('Про нас', 'http://bloger.fm/o-nas.html', Icons.person),
@@ -23,7 +25,7 @@ const List<InfoLink> infoLinks = const [
   InfoLink('bloger.fm', 'skype:bloger.fm?chat', FontAwesomeIcons.skype),
   InfoLink(
       '04213 Київ, вул. Прирічна, 27-е',
-      'https://www.google.com.ua/maps/@50.5239043,30.5191951,17z/data=!4m5!3m4!1s0x40d4d230eb53e497:0x82c45390281964f1!8m2!3d50.5239043!4d30.5213838',
+      'https://google.com/maps/@50.5239043,30.5191951,17z/data=!4m5!3m4!1s0x40d4d230eb53e497:0x82c45390281964f1!8m2!3d50.5239043!4d30.5213838',
       Icons.location_on),
 ];
 
@@ -78,9 +80,9 @@ class PlayerPage extends StatelessWidget {
           leading: Icon(infoLink.icon),
           title: Text(infoLink.text),
           onTap: () async {
-            if (await canLaunch(infoLink.url)) {
+            try {
               await launch(infoLink.url);
-            }
+            } catch (e) {}
             Navigator.of(context).pop();
           },
         );
@@ -160,9 +162,7 @@ class PlayerPage extends StatelessWidget {
         return radioStatus == null
             ? Padding(
                 padding: EdgeInsets.all(16.0),
-                child:
-                    PlatformProgressIndicator(size: 112.0, strokeWidth: 12.0),
-              )
+                child: _buildProgressIndicator(context, 112.0, 12.0))
             : IconButton(
                 iconSize: 128.0,
                 icon: Icon(
@@ -176,6 +176,19 @@ class PlayerPage extends StatelessWidget {
                 },
               );
       },
+    );
+  }
+
+  Widget _buildProgressIndicator(
+      BuildContext context, double size, double strokeWidth) {
+    return SizedBox(
+      height: size,
+      width: size,
+      child: CircularProgressIndicator(
+        strokeWidth: strokeWidth,
+        valueColor:
+            AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+      ),
     );
   }
 
@@ -207,14 +220,12 @@ class PlayerPage extends StatelessWidget {
                 ? facebookIOS
                 : facebookAndroid;
             try {
-              if (await canLaunch(intentLink)) {
-                await launch(intentLink);
-              } else {
-                await launch(facebookUrl);
-              }
-            } catch (e) {
-              print(e);
-            }
+              await launch(intentLink);
+              return;
+            } catch (e) {}
+            try {
+              await launch(facebookUrl);
+            } catch (e) {}
           },
         ),
         IconButton(
@@ -223,11 +234,15 @@ class PlayerPage extends StatelessWidget {
             color: Color(0xFF1DA1F2),
           ),
           onPressed: () async {
+            if (Theme.of(context).platform == TargetPlatform.iOS) {
+              try {
+                await launch(twitterIOS);
+                return;
+              } catch (e) {}
+            }
             try {
               await launch(twitterUrl);
-            } catch (e) {
-              print(e);
-            }
+            } catch (e) {}
           },
         ),
         IconButton(
@@ -236,11 +251,15 @@ class PlayerPage extends StatelessWidget {
             color: Color(0xFFDB4437),
           ),
           onPressed: () async {
+            if (Theme.of(context).platform == TargetPlatform.iOS) {
+              try {
+                await launch(gPlusIOS);
+                return;
+              } catch (e) {}
+            }
             try {
               await launch(gPlusUrl);
-            } catch (e) {
-              print(e);
-            }
+            } catch (e) {}
           },
         ),
         IconButton(
@@ -250,6 +269,10 @@ class PlayerPage extends StatelessWidget {
             color: Color(0xFFFF5500),
           ),
           onPressed: () async {
+            try {
+              await launch(soundCloudIntent);
+              return;
+            } catch (e) {}
             try {
               await launch(soundCloudUrl);
             } catch (e) {

@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:audioplayer/audioplayer.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:connectivity/connectivity.dart';
 
 import '../models/radiostation.dart';
@@ -12,21 +12,20 @@ import '../providers/prefs_singleton.dart';
 
 const SELECTED_RADIOSTATION_NAME = 'SELECTED_RADIOSTATION_NAME';
 
+final AudioPlayer _audioPlayer = AudioPlayer();
+
 class RadiostationsBloc {
   RadiostationsBloc() {
     loadState();
     // Listeners
     radiostation.listen(_radiostationChangeHandler);
     radiostationBitrate.listen(_radiostationBitrateChangeHandler);
-    _audioPlayerStateSubscription =
-        _audioPlayer.onPlayerStateChanged.listen(_onPlayerStateChanged);
+    _audioPlayer.audioPlayerStateChangeHandler = _onPlayerStateChanged;
   }
 
   // Regular variables
   final SharedPreferences _prefs = PrefsSingleton.prefs;
-  final AudioPlayer _audioPlayer = AudioPlayer();
   final Connectivity _connectivity = Connectivity();
-  StreamSubscription<AudioPlayerState> _audioPlayerStateSubscription;
 
   // Reactive variables
   final _radiostation = BehaviorSubject<Radiostation>();
@@ -138,11 +137,13 @@ class RadiostationsBloc {
     selectRadiostationByName(name);
   }
 
-  void dispose() {
+  Future<void> dispose() async {
     // cleanup
-    _radiostation.close();
-    _radiostationBitrate.close();
-    _radioStatus.close();
-    _audioPlayerStateSubscription.cancel();
+    await Future.wait([
+      _audioPlayer.release(),
+      _radiostation.close(),
+      _radiostationBitrate.close(),
+      _radioStatus.close(),
+    ]);
   }
 }
