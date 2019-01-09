@@ -104,10 +104,28 @@ class PlayerPage extends StatelessWidget {
     ));
   }
 
-  DecorationImage _buildBackgroundImage() {
-    return DecorationImage(
-      fit: BoxFit.cover,
-      image: AssetImage('assets/images/bg.jpg'),
+  Widget _buildBackgroundImage(context) {
+    final radiostationsBloc = RadiostationsProvider.of(context);
+    return StreamBuilder<Radiostation>(
+      stream: radiostationsBloc.radiostation,
+      builder: (BuildContext context, AsyncSnapshot<Radiostation> snapshot) {
+        final Radiostation radiostation = snapshot.data;
+        return Container(
+          foregroundDecoration: BoxDecoration(
+            image: DecorationImage(
+              fit: BoxFit.cover,
+              colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(radiostation == null
+                      ? 1
+                      : radiostation.backgroundOpacity),
+                  BlendMode.dstATop),
+              image: AssetImage(radiostation == null
+                  ? 'assets/images/bg.jpg'
+                  : radiostation.background),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -289,34 +307,35 @@ class PlayerPage extends StatelessWidget {
     return Scaffold(
       appBar: _buildAppBar(context),
       drawer: _buildDrawer(context),
-      body: Container(
-        decoration: BoxDecoration(image: _buildBackgroundImage()),
-        width: double.infinity,
-        child: Column(
-          children: <Widget>[
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
-              child: Image(
-                width: 64.0,
-                image: AssetImage('assets/images/logo.png'),
-              ),
-            ),
-            _buildBitratesRow(context),
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    _buildStopBtn(context),
-                    SizedBox(height: 8.0),
-                    _buildPlayBtn(context),
-                  ],
+      body: Stack(
+        children: <Widget>[
+          _buildBackgroundImage(context),
+          Column(
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+                child: Image(
+                  width: 64.0,
+                  image: AssetImage('assets/images/logo.png'),
                 ),
               ),
-            ),
-            _buildSocialButtons(context),
-          ],
-        ),
+              _buildBitratesRow(context),
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      _buildStopBtn(context),
+                      SizedBox(height: 8.0),
+                      _buildPlayBtn(context),
+                    ],
+                  ),
+                ),
+              ),
+              _buildSocialButtons(context),
+            ],
+          ),
+        ],
       ),
     );
   }

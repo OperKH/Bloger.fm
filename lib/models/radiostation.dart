@@ -3,10 +3,14 @@ import 'package:flutter/material.dart';
 class Radiostation {
   final String name;
   final List<RadioUrl> urls;
+  final String background;
+  final double backgroundOpacity;
 
   const Radiostation({
     @required this.name,
     @required this.urls,
+    this.background = 'assets/images/bg.jpg',
+    this.backgroundOpacity = 1.0,
   });
 }
 
