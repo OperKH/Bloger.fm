@@ -170,6 +170,24 @@ class PlayerPage extends StatelessWidget {
     );
   }
 
+  Widget _buildRadioTitleRow(context) {
+    final radiostationsBloc = RadiostationsProvider.of(context);
+    return Container(
+      padding: EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 16.0),
+      child: StreamBuilder<String>(
+        stream: radiostationsBloc.radioTitle,
+        initialData: '',
+        builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+          return Text(
+            snapshot.data,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 20.0),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildPlayBtn(BuildContext context) {
     final radiostationsBloc = RadiostationsProvider.of(context);
 
@@ -320,6 +338,7 @@ class PlayerPage extends StatelessWidget {
                 ),
               ),
               _buildBitratesRow(context),
+              _buildRadioTitleRow(context),
               Expanded(
                 child: Center(
                   child: Column(

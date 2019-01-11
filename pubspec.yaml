@@ -26,6 +26,7 @@ dependencies:
     git:
       url: https://github.com/luanpotter/audioplayers.git
   rxdart: ^0.20.0
+  dio: ^1.0.13
 
 dev_dependencies:
   flutter_test:

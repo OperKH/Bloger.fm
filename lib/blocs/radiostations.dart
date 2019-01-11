@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:connectivity/connectivity.dart';
+import 'package:dio/dio.dart';
 
 import '../models/radiostation.dart';
 import '../constants/radiostations.dart';
@@ -16,31 +19,31 @@ final AudioPlayer _audioPlayer = AudioPlayer();
 
 class RadiostationsBloc {
   RadiostationsBloc() {
-    loadState();
-    // Listeners
-    radiostation.listen(_radiostationChangeHandler);
-    radiostationBitrate.listen(_radiostationBitrateChangeHandler);
-    _audioPlayer.audioPlayerStateChangeHandler = _onPlayerStateChanged;
+    init();
   }
 
   // Regular variables
   final SharedPreferences _prefs = PrefsSingleton.prefs;
   final Connectivity _connectivity = Connectivity();
+  final Dio dio = Dio();
 
   // Reactive variables
   final _radiostation = BehaviorSubject<Radiostation>();
   final _radiostationBitrate = BehaviorSubject<int>();
   final _radioStatus = BehaviorSubject<RadioStatus>();
+  final _radioTitle = BehaviorSubject<String>();
 
   // Streams
   Observable<Radiostation> get radiostation => _radiostation.stream;
   Observable<int> get radiostationBitrate => _radiostationBitrate.stream;
   Observable<RadioStatus> get radioStatus => _radioStatus.stream;
+  Observable<String> get radioTitle => _radioTitle.stream;
 
   // Sinks
   Function(Radiostation) get _setRadiostation => _radiostation.sink.add;
   Function(int) get _setRadiostationBitrate => _radiostationBitrate.sink.add;
   Function(RadioStatus) get _setRadioStatus => _radioStatus.sink.add;
+  Function(String) get _setRadioTitle => _radioTitle.sink.add;
 
   // Logic Functions
   void selectRadiostationByName(String name) {
@@ -59,8 +62,8 @@ class RadiostationsBloc {
     if (_radioStatus.value != RadioStatus.isPlaying) {
       _setRadioStatus(null);
     }
-    final url = _getRadiostationUrl();
-    await _audioPlayer.play(url);
+    final String url = _getRadiostationUrl();
+    await _audioPlayer.play('$radioServer$url');
   }
 
   Future<void> stop() async {
@@ -77,8 +80,9 @@ class RadiostationsBloc {
 
   // Private Logic Functions
   void _radiostationChangeHandler(Radiostation radiostation) {
-    _prefs.setString(SELECTED_RADIOSTATION_NAME, radiostation.name);
+    _setRadioTitle('');
     _selectOptimizedRadistationBitrate();
+    _prefs.setString(SELECTED_RADIOSTATION_NAME, radiostation.name);
   }
 
   Future<void> _radiostationBitrateChangeHandler(int bitrate) async {
@@ -122,6 +126,7 @@ class RadiostationsBloc {
         break;
       case AudioPlayerState.STOPPED:
         _setRadioStatus(RadioStatus.isStoped);
+        _setRadioTitle('');
         break;
       case AudioPlayerState.COMPLETED:
         _setRadioStatus(null);
@@ -132,9 +137,43 @@ class RadiostationsBloc {
     }
   }
 
-  void loadState() async {
-    final name = _prefs.getString(SELECTED_RADIOSTATION_NAME);
+  Future<void> _updateRadioTitle() async {
+    if (_radioStatus.value != RadioStatus.isPlaying) {
+      Future.delayed(Duration(seconds: 2), _updateRadioTitle);
+      return;
+    }
+    final String url = _getRadiostationUrl();
+    Response response;
+    try {
+      response = await dio.get('$radioServer/json.xsl');
+    } catch (e) {
+      Future.delayed(Duration(seconds: 1), _updateRadioTitle);
+    }
+    final String json = parseJSONP(response.data);
+    final serverStatus = await compute(jsonDecode, json);
+    final title = serverStatus[url]['title'];
+    final String currentUrl = _getRadiostationUrl();
+    if (url == currentUrl &&
+        title != _radioTitle.value &&
+        _radioStatus.value == RadioStatus.isPlaying) {
+      _setRadioTitle(title);
+      print(title);
+    }
+    Future.delayed(Duration(seconds: 6), _updateRadioTitle);
+  }
+
+  String parseJSONP(String jsonp) {
+    return jsonp.substring(jsonp.indexOf('(') + 1, jsonp.lastIndexOf(')'));
+  }
+
+  void init() {
+    final String name = _prefs.getString(SELECTED_RADIOSTATION_NAME);
     selectRadiostationByName(name);
+    _updateRadioTitle();
+    // Listeners
+    radiostation.listen(_radiostationChangeHandler);
+    radiostationBitrate.listen(_radiostationBitrateChangeHandler);
+    _audioPlayer.audioPlayerStateChangeHandler = _onPlayerStateChanged;
   }
 
   Future<void> dispose() async {
@@ -144,6 +183,7 @@ class RadiostationsBloc {
       _radiostation.close(),
       _radiostationBitrate.close(),
       _radioStatus.close(),
+      _radioTitle.close(),
     ]);
   }
 }
