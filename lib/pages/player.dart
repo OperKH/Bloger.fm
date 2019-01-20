@@ -203,7 +203,7 @@ class PlayerPage extends StatelessWidget {
                 iconSize: 128.0,
                 icon: Icon(
                   radioStatus == RadioStatus.isPlaying
-                      ? FontAwesomeIcons.pauseCircle
+                      ? FontAwesomeIcons.stopCircle
                       : FontAwesomeIcons.playCircle,
                   color: Theme.of(context).primaryColor,
                 ),
@@ -225,20 +225,6 @@ class PlayerPage extends StatelessWidget {
         valueColor:
             AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
       ),
-    );
-  }
-
-  Widget _buildStopBtn(BuildContext context) {
-    final radiostationsBloc = RadiostationsProvider.of(context);
-    return IconButton(
-      iconSize: 48.0,
-      icon: Icon(
-        FontAwesomeIcons.stopCircle,
-        color: Theme.of(context).primaryColor,
-      ),
-      onPressed: () {
-        radiostationsBloc.stop();
-      },
     );
   }
 
@@ -344,8 +330,6 @@ class PlayerPage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      _buildStopBtn(context),
-                      SizedBox(height: 8.0),
                       _buildPlayBtn(context),
                     ],
                   ),

@@ -75,7 +75,7 @@ class RadiostationsBloc {
   }
 
   Future<void> togglePlay() async {
-    _radioStatus.value == RadioStatus.isPlaying ? await pause() : await play();
+    _radioStatus.value == RadioStatus.isPlaying ? await stop() : await play();
   }
 
   // Private Logic Functions
