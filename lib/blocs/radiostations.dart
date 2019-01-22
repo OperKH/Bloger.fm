@@ -146,12 +146,16 @@ class RadiostationsBloc {
     Response response;
     try {
       response = await dio.get('$radioServer/json.xsl');
+      if (response == null || response.data == null) {
+        Future.delayed(Duration(seconds: 1), _updateRadioTitle);
+      }
     } catch (e) {
       Future.delayed(Duration(seconds: 1), _updateRadioTitle);
     }
     final String json = parseJSONP(response.data);
     final serverStatus = await compute(jsonDecode, json);
-    final title = serverStatus[url]['title'];
+    final radiostationStatus = serverStatus[url];
+    final String title = radiostationStatus == null ? '' : radiostationStatus['title'];
     final String currentUrl = _getRadiostationUrl();
     if (url == currentUrl &&
         title != _radioTitle.value &&
