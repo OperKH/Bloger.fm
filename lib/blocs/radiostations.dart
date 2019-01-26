@@ -119,7 +119,7 @@ class RadiostationsBloc {
     print(state);
     switch (state) {
       case AudioPlayerState.PLAYING:
-        _setRadioStatus(RadioStatus.isPlaying);
+        _setRadioStatus(RadioStatus.isPreparePlaying);
         break;
       case AudioPlayerState.PAUSED:
         _setRadioStatus(RadioStatus.isPaused);
@@ -137,9 +137,17 @@ class RadiostationsBloc {
     }
   }
 
+  void _onPositionChanged(Duration position) {
+    if (_radioStatus.value != RadioStatus.isPlaying &&
+        position.inMicroseconds > 0) {
+      _setRadioStatus(RadioStatus.isPlaying);
+    }
+  }
+
   Future<void> _updateRadioTitle() async {
-    if (_radioStatus.value != RadioStatus.isPlaying) {
-      Future.delayed(Duration(seconds: 2), _updateRadioTitle);
+    if (_radioStatus.value != RadioStatus.isPlaying &&
+        _radioStatus.value != RadioStatus.isPreparePlaying) {
+      Future.delayed(Duration(seconds: 1), _updateRadioTitle);
       return;
     }
     final String url = _getRadiostationUrl();
@@ -155,11 +163,13 @@ class RadiostationsBloc {
     final String json = parseJSONP(response.data);
     final serverStatus = await compute(jsonDecode, json);
     final radiostationStatus = serverStatus[url];
-    final String title = radiostationStatus == null ? '' : radiostationStatus['title'];
+    final String title =
+        radiostationStatus == null ? '' : radiostationStatus['title'];
     final String currentUrl = _getRadiostationUrl();
     if (url == currentUrl &&
         title != _radioTitle.value &&
-        _radioStatus.value == RadioStatus.isPlaying) {
+        (_radioStatus.value == RadioStatus.isPlaying ||
+            _radioStatus.value == RadioStatus.isPreparePlaying)) {
       _setRadioTitle(title);
       print(title);
     }
@@ -178,6 +188,7 @@ class RadiostationsBloc {
     radiostation.listen(_radiostationChangeHandler);
     radiostationBitrate.listen(_radiostationBitrateChangeHandler);
     _audioPlayer.audioPlayerStateChangeHandler = _onPlayerStateChanged;
+    _audioPlayer.positionHandler = _onPositionChanged;
   }
 
   Future<void> dispose() async {

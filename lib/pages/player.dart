@@ -195,7 +195,8 @@ class PlayerPage extends StatelessWidget {
       stream: radiostationsBloc.radioStatus,
       builder: (BuildContext context, AsyncSnapshot<RadioStatus> snapshot) {
         final RadioStatus radioStatus = snapshot.data;
-        return radioStatus == null
+        return (radioStatus == null ||
+                radioStatus == RadioStatus.isPreparePlaying)
             ? Padding(
                 padding: EdgeInsets.all(16.0),
                 child: _buildProgressIndicator(context, 112.0, 12.0))
