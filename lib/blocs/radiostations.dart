@@ -138,7 +138,7 @@ class RadiostationsBloc {
   }
 
   void _onPositionChanged(Duration position) {
-    if (_radioStatus.value != RadioStatus.isPlaying &&
+    if (_radioStatus.value == RadioStatus.isPreparePlaying &&
         position.inMicroseconds > 0) {
       _setRadioStatus(RadioStatus.isPlaying);
     }
