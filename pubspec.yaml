@@ -22,8 +22,7 @@ dependencies:
   shared_preferences: ^0.4.3
   connectivity: ^0.3.2
   url_launcher: ^4.0.3
-  audioplayers:
-    path: ../audioplayers
+  audioplayers: ^0.8.1
   rxdart: ^0.20.0
   dio: ^1.0.13
 
