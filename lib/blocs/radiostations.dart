@@ -51,6 +51,9 @@ class RadiostationsBloc {
       (Radiostation station) => station.name == name,
       orElse: () => radiostations.first,
     );
+    // deselect bitrate before dropdown get new bitrates list
+    _setRadiostationBitrate(null);
+    // select new station
     _setRadiostation(radiostation);
   }
 
