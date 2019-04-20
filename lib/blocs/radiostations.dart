@@ -190,8 +190,8 @@ class RadiostationsBloc {
     // Listeners
     radiostation.listen(_radiostationChangeHandler);
     radiostationBitrate.listen(_radiostationBitrateChangeHandler);
-    _audioPlayer.audioPlayerStateChangeHandler = _onPlayerStateChanged;
-    _audioPlayer.positionHandler = _onPositionChanged;
+    _audioPlayer.onPlayerStateChanged.listen(_onPlayerStateChanged);
+    _audioPlayer.onAudioPositionChanged.listen(_onPositionChanged);
   }
 
   Future<void> dispose() async {
